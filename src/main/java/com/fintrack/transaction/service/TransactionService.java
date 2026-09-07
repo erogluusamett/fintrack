@@ -36,7 +36,18 @@ public class TransactionService {
 
     @Transactional
     public TransactionResponse create(CreateTransactionRequest request) {
-        UUID userId = CurrentUserProvider.getUserId();
+        return createForUser(CurrentUserProvider.getUserId(), request);
+    }
+
+    /**
+     * {@code CurrentUserProvider} yerine açık bir {@code userId} alır —
+     * {@code RecurringTransactionScheduler} gibi HTTP isteği/SecurityContext
+     * olmayan bir arka plan işinden çağrılabilmesi için. Aynı
+     * {@link TransactionCreatedEvent} yayınlanır, böylece otomatik oluşan
+     * işlemler de budget kontrolünden geçer.
+     */
+    @Transactional
+    public TransactionResponse createForUser(UUID userId, CreateTransactionRequest request) {
         Category category = categoryAccessService.resolveOptional(request.categoryId(), request.type(), userId);
 
         Transaction transaction = Transaction.builder()
@@ -52,7 +63,7 @@ public class TransactionService {
 
         eventPublisher.publishEvent(new TransactionCreatedEvent(
                 transaction.getId(), userId, category != null ? category.getId() : null,
-                transaction.getType(), transaction.getAmount()));
+                transaction.getType(), transaction.getAmount(), transaction.getCurrency(), transaction.getTransactionDate()));
 
         return TransactionResponse.from(transaction);
     }

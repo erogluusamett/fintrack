@@ -83,7 +83,18 @@ public class BudgetService {
 
     @Transactional(readOnly = true)
     public BudgetStatusResponse status(UUID id) {
-        Budget budget = findOwned(id);
+        return computeStatus(findOwned(id));
+    }
+
+    /**
+     * Ownership kontrolü YAPMAZ — entity zaten elde bulunduğunda kullanılır.
+     * {@link com.fintrack.budget.listener.BudgetEventListener} bunu event
+     * işlerken çağırır; o context'te HTTP isteği/{@code CurrentUserProvider}
+     * yoktur, bu yüzden {@link #status(UUID)}'ün ownership-check'li yolunu
+     * kullanamaz.
+     */
+    @Transactional(readOnly = true)
+    public BudgetStatusResponse computeStatus(Budget budget) {
         BigDecimal spent = calculateSpent(budget);
         BigDecimal remaining = budget.getAmountLimit().subtract(spent);
         BigDecimal usagePercentage = spent

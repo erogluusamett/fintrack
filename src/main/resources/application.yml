@@ -37,6 +37,14 @@ app:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
   mail-from: ${MAIL_FROM:no-reply@fintrack.dev}
 
+fintrack:
+  scheduler:
+    # Her gün 01:00'de tekrarlayan işlemleri gerçek transaction'a çevirir.
+    recurring-transaction-cron: ${RECURRING_TX_CRON:0 0 1 * * *}
+    # Her gün 08:00'de yaklaşan abonelik yenilemelerini kontrol eder.
+    subscription-reminder-cron: ${SUBSCRIPTION_REMINDER_CRON:0 0 8 * * *}
+    subscription-reminder-window-days: ${SUBSCRIPTION_REMINDER_WINDOW_DAYS:3}
+
 server:
   port: ${SERVER_PORT:8080}
 
