@@ -44,6 +44,10 @@ fintrack:
     # Her gün 08:00'de yaklaşan abonelik yenilemelerini kontrol eder.
     subscription-reminder-cron: ${SUBSCRIPTION_REMINDER_CRON:0 0 8 * * *}
     subscription-reminder-window-days: ${SUBSCRIPTION_REMINDER_WINDOW_DAYS:3}
+  rate-limit:
+    # /auth/login, /auth/register, /auth/forgot-password için IP başına pencere.
+    auth-max-requests: ${AUTH_RATE_LIMIT_MAX:5}
+    auth-window-seconds: ${AUTH_RATE_LIMIT_WINDOW_SECONDS:60}
 
 server:
   port: ${SERVER_PORT:8080}

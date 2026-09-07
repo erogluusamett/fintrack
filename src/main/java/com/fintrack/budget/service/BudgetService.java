@@ -1,5 +1,7 @@
 package com.fintrack.budget.service;
 
+import com.fintrack.audit.entity.AuditAction;
+import com.fintrack.audit.service.AuditService;
 import com.fintrack.budget.dto.BudgetResponse;
 import com.fintrack.budget.dto.BudgetStatusResponse;
 import com.fintrack.budget.dto.CreateBudgetRequest;
@@ -34,6 +36,7 @@ public class BudgetService {
     private final CategoryAccessService categoryAccessService;
     private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
+    private final AuditService auditService;
 
     @Transactional(readOnly = true)
     public List<BudgetResponse> list() {
@@ -58,12 +61,15 @@ public class BudgetService {
                 .endDate(computeEndDate(request.startDate(), request.period()))
                 .build();
         budgetRepository.save(budget);
-        return BudgetResponse.from(budget);
+        BudgetResponse response = BudgetResponse.from(budget);
+        auditService.record(userId, AuditAction.BUDGET_CREATED, "BUDGET", budget.getId(), null, response);
+        return response;
     }
 
     @Transactional
     public BudgetResponse update(UUID id, CreateBudgetRequest request) {
         Budget budget = findOwned(id);
+        BudgetResponse before = BudgetResponse.from(budget);
         Category category = categoryAccessService.resolveOwnedOrSystemOrNull(request.categoryId(), budget.getUser().getId());
 
         budget.setCategory(category);
@@ -73,12 +79,17 @@ public class BudgetService {
         budget.setStartDate(request.startDate());
         budget.setEndDate(computeEndDate(request.startDate(), request.period()));
 
-        return BudgetResponse.from(budget);
+        BudgetResponse after = BudgetResponse.from(budget);
+        auditService.record(CurrentUserProvider.getUserId(), AuditAction.BUDGET_UPDATED, "BUDGET", id, before, after);
+        return after;
     }
 
     @Transactional
     public void delete(UUID id) {
-        budgetRepository.delete(findOwned(id));
+        Budget budget = findOwned(id);
+        BudgetResponse before = BudgetResponse.from(budget);
+        budgetRepository.delete(budget);
+        auditService.record(CurrentUserProvider.getUserId(), AuditAction.BUDGET_DELETED, "BUDGET", budget.getId(), before, null);
     }
 
     @Transactional(readOnly = true)

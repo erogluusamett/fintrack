@@ -1,5 +1,7 @@
 package com.fintrack.subscription.service;
 
+import com.fintrack.audit.entity.AuditAction;
+import com.fintrack.audit.service.AuditService;
 import com.fintrack.category.entity.Category;
 import com.fintrack.category.service.CategoryAccessService;
 import com.fintrack.common.exception.ForbiddenException;
@@ -24,6 +26,7 @@ public class SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final CategoryAccessService categoryAccessService;
     private final UserRepository userRepository;
+    private final AuditService auditService;
 
     @Transactional(readOnly = true)
     public List<SubscriptionResponse> list() {
@@ -70,8 +73,11 @@ public class SubscriptionService {
     @Transactional
     public SubscriptionResponse cancel(UUID id) {
         Subscription subscription = findOwned(id);
+        SubscriptionResponse before = SubscriptionResponse.from(subscription);
         subscription.setActive(false);
-        return SubscriptionResponse.from(subscription);
+        SubscriptionResponse after = SubscriptionResponse.from(subscription);
+        auditService.record(CurrentUserProvider.getUserId(), AuditAction.SUBSCRIPTION_CANCELLED, "SUBSCRIPTION", id, before, after);
+        return after;
     }
 
     @Transactional

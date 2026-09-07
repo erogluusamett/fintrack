@@ -33,10 +33,12 @@ public class SecurityConfig {
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
-            "/actuator/health"
+            "/actuator/health",
+            "/error"
     };
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RateLimitingFilter rateLimitingFilter;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final RestAccessDeniedHandler restAccessDeniedHandler;
 
@@ -53,6 +55,10 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated()
                 )
+                // Rate limiting JWT doğrulamasından ÖNCE çalışmalı: amaç zaten
+                // kimliksiz/brute-force isteklerin Redis'e sayaç olarak
+                // düşmesi, bu yüzden JwtAuthenticationFilter'dan önce eklendi.
+                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

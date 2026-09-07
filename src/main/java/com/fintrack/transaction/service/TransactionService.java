@@ -1,5 +1,7 @@
 package com.fintrack.transaction.service;
 
+import com.fintrack.audit.entity.AuditAction;
+import com.fintrack.audit.service.AuditService;
 import com.fintrack.category.entity.Category;
 import com.fintrack.category.service.CategoryAccessService;
 import com.fintrack.common.exception.ForbiddenException;
@@ -33,6 +35,7 @@ public class TransactionService {
     private final CategoryAccessService categoryAccessService;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final AuditService auditService;
 
     @Transactional
     public TransactionResponse create(CreateTransactionRequest request) {
@@ -65,7 +68,9 @@ public class TransactionService {
                 transaction.getId(), userId, category != null ? category.getId() : null,
                 transaction.getType(), transaction.getAmount(), transaction.getCurrency(), transaction.getTransactionDate()));
 
-        return TransactionResponse.from(transaction);
+        TransactionResponse response = TransactionResponse.from(transaction);
+        auditService.record(userId, AuditAction.TRANSACTION_CREATED, "TRANSACTION", transaction.getId(), null, response);
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -89,6 +94,7 @@ public class TransactionService {
     @Transactional
     public TransactionResponse update(UUID id, UpdateTransactionRequest request) {
         Transaction transaction = findOwned(id);
+        TransactionResponse before = TransactionResponse.from(transaction);
         Category category = categoryAccessService.resolveOptional(request.categoryId(), request.type(), transaction.getUser().getId());
 
         transaction.setCategory(category);
@@ -98,12 +104,17 @@ public class TransactionService {
         transaction.setTransactionDate(request.transactionDate());
         transaction.setDescription(request.description());
 
-        return TransactionResponse.from(transaction);
+        TransactionResponse after = TransactionResponse.from(transaction);
+        auditService.record(CurrentUserProvider.getUserId(), AuditAction.TRANSACTION_UPDATED, "TRANSACTION", id, before, after);
+        return after;
     }
 
     @Transactional
     public void delete(UUID id) {
-        transactionRepository.delete(findOwned(id));
+        Transaction transaction = findOwned(id);
+        TransactionResponse before = TransactionResponse.from(transaction);
+        transactionRepository.delete(transaction);
+        auditService.record(CurrentUserProvider.getUserId(), AuditAction.TRANSACTION_DELETED, "TRANSACTION", transaction.getId(), before, null);
     }
 
     private Transaction findOwned(UUID id) {
