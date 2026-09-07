@@ -311,7 +311,8 @@ public class AnalyticsService {
         return (year != null && month != null) ? YearMonth.of(year, month) : YearMonth.now();
     }
 
-    private BigDecimal percentOf(BigDecimal part, BigDecimal whole) {
+    /** Package-private (private değil): AnalyticsServiceTest saf matematiği izole test edebilsin diye. */
+    BigDecimal percentOf(BigDecimal part, BigDecimal whole) {
         if (whole.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;
         }
@@ -319,7 +320,7 @@ public class AnalyticsService {
     }
 
     /** {@code previous} sıfırsa: değişim ancak {@code current} da sıfırsa 0, aksi halde tam artış (%100) kabul edilir. */
-    private BigDecimal percentChange(BigDecimal previous, BigDecimal current) {
+    BigDecimal percentChange(BigDecimal previous, BigDecimal current) {
         if (previous.compareTo(BigDecimal.ZERO) == 0) {
             return current.compareTo(BigDecimal.ZERO) == 0 ? BigDecimal.ZERO : HUNDRED;
         }
