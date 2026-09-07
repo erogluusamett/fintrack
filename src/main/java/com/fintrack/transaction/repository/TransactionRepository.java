@@ -2,6 +2,7 @@ package com.fintrack.transaction.repository;
 
 import com.fintrack.common.enums.Currency;
 import com.fintrack.transaction.entity.Transaction;
+import com.fintrack.transaction.entity.TransactionType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -9,6 +10,8 @@ import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface TransactionRepository extends JpaRepository<Transaction, UUID>, JpaSpecificationExecutor<Transaction> {
@@ -38,4 +41,39 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID>,
                                  @Param("startDate") LocalDate startDate,
                                  @Param("endDate") LocalDate endDate,
                                  @Param("categoryId") UUID categoryId);
+
+    /** AnalyticsService için genel amaçlı toplam — Budget'a özel olmayan (INCOME dahil) sürüm. */
+    @Query("""
+            SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t
+            WHERE t.user.id = :userId AND t.type = :type AND t.currency = :currency
+              AND t.transactionDate BETWEEN :startDate AND :endDate
+            """)
+    BigDecimal sumAmountByTypeAndDateRange(@Param("userId") UUID userId,
+                                            @Param("type") TransactionType type,
+                                            @Param("currency") Currency currency,
+                                            @Param("startDate") LocalDate startDate,
+                                            @Param("endDate") LocalDate endDate);
+
+    Optional<Transaction> findFirstByUserIdAndTypeAndCurrencyAndTransactionDateBetweenOrderByAmountDesc(
+            UUID userId, TransactionType type, Currency currency, LocalDate startDate, LocalDate endDate);
+
+    @Query("""
+            SELECT t.category.id AS categoryId, t.category.name AS categoryName, SUM(t.amount) AS total
+            FROM Transaction t
+            WHERE t.user.id = :userId AND t.type = :type AND t.currency = :currency
+              AND t.transactionDate BETWEEN :startDate AND :endDate AND t.category IS NOT NULL
+            GROUP BY t.category.id, t.category.name
+            ORDER BY SUM(t.amount) DESC
+            """)
+    List<CategoryAmountProjection> sumByCategoryForDateRange(@Param("userId") UUID userId,
+                                                              @Param("type") TransactionType type,
+                                                              @Param("currency") Currency currency,
+                                                              @Param("startDate") LocalDate startDate,
+                                                              @Param("endDate") LocalDate endDate);
+
+    interface CategoryAmountProjection {
+        UUID getCategoryId();
+        String getCategoryName();
+        BigDecimal getTotal();
+    }
 }

@@ -68,14 +68,14 @@ public class BudgetEventListener {
             notificationService.createIfAbsent(
                     budget.getUser().getId(), NotificationType.BUDGET_WARNING,
                     "Bütçe Aşıldı: " + scope,
-                    "%s bütçen %%%.0f kullanıma ulaştı (%s / %s %s)".formatted(
+                    "%s bütçen %%%s kullanıma ulaştı (%s / %s %s)".formatted(
                             scope, status.usagePercentage(), status.spent(), budget.getAmountLimit(), budget.getCurrency()),
                     budget.getId(), "BUDGET");
         } else if (status.status() == BudgetStatusResponse.Status.WARNING) {
             notificationService.createIfAbsent(
                     budget.getUser().getId(), NotificationType.BUDGET_WARNING,
                     "Bütçe Uyarısı: " + scope,
-                    "%s bütçen %%%.0f kullanıma ulaştı (%s / %s %s)".formatted(
+                    "%s bütçen %%%s kullanıma ulaştı (%s / %s %s)".formatted(
                             scope, status.usagePercentage(), status.spent(), budget.getAmountLimit(), budget.getCurrency()),
                     budget.getId(), "BUDGET");
         }
