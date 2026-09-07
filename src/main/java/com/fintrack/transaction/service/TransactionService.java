@@ -1,8 +1,7 @@
 package com.fintrack.transaction.service;
 
 import com.fintrack.category.entity.Category;
-import com.fintrack.category.repository.CategoryRepository;
-import com.fintrack.common.exception.BusinessException;
+import com.fintrack.category.service.CategoryAccessService;
 import com.fintrack.common.exception.ForbiddenException;
 import com.fintrack.common.exception.ResourceNotFoundException;
 import com.fintrack.security.CurrentUserProvider;
@@ -31,14 +30,14 @@ import java.util.UUID;
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
-    private final CategoryRepository categoryRepository;
+    private final CategoryAccessService categoryAccessService;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public TransactionResponse create(CreateTransactionRequest request) {
         UUID userId = CurrentUserProvider.getUserId();
-        Category category = resolveCategory(request.categoryId(), request.type(), userId);
+        Category category = categoryAccessService.resolveOptional(request.categoryId(), request.type(), userId);
 
         Transaction transaction = Transaction.builder()
                 .user(userRepository.getReferenceById(userId))
@@ -79,7 +78,7 @@ public class TransactionService {
     @Transactional
     public TransactionResponse update(UUID id, UpdateTransactionRequest request) {
         Transaction transaction = findOwned(id);
-        Category category = resolveCategory(request.categoryId(), request.type(), transaction.getUser().getId());
+        Category category = categoryAccessService.resolveOptional(request.categoryId(), request.type(), transaction.getUser().getId());
 
         transaction.setCategory(category);
         transaction.setType(request.type());
@@ -103,27 +102,5 @@ public class TransactionService {
             throw new ForbiddenException("Bu işleme erişim yetkin yok");
         }
         return transaction;
-    }
-
-    /**
-     * TRANSFER işlemler kategorisiz kalabilir (sistemde ayrı bir "hesap"
-     * kavramı olmadığı için anlamlı bir kategori seçimi yok); INCOME/EXPENSE
-     * için kategori zorunludur. Seçilen kategori sistem varsayılanı ya da
-     * isteği yapan kullanıcıya ait olmalıdır.
-     */
-    private Category resolveCategory(UUID categoryId, TransactionType type, UUID userId) {
-        if (categoryId == null) {
-            if (type != TransactionType.TRANSFER) {
-                throw new BusinessException("INCOME/EXPENSE işlemler için kategori zorunludur");
-            }
-            return null;
-        }
-
-        Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> ResourceNotFoundException.of("Category", categoryId));
-        if (!category.isSystemDefault() && !category.getUser().getId().equals(userId)) {
-            throw new ForbiddenException("Bu kategoriye erişim yetkin yok");
-        }
-        return category;
     }
 }

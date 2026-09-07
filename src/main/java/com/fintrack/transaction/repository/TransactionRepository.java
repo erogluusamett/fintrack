@@ -1,11 +1,14 @@
 package com.fintrack.transaction.repository;
 
+import com.fintrack.common.enums.Currency;
 import com.fintrack.transaction.entity.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 public interface TransactionRepository extends JpaRepository<Transaction, UUID>, JpaSpecificationExecutor<Transaction> {
@@ -20,4 +23,19 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID>,
      */
     @Query(value = "SELECT EXISTS(SELECT 1 FROM transactions WHERE category_id = :categoryId)", nativeQuery = true)
     boolean existsByCategoryIdIncludingDeleted(@Param("categoryId") UUID categoryId);
+
+    /** Budget durum hesaplaması için: bkz. BudgetService#calculateSpent. */
+    @Query("""
+            SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t
+            WHERE t.user.id = :userId
+              AND t.type = com.fintrack.transaction.entity.TransactionType.EXPENSE
+              AND t.currency = :currency
+              AND t.transactionDate BETWEEN :startDate AND :endDate
+              AND (:categoryId IS NULL OR t.category.id = :categoryId)
+            """)
+    BigDecimal sumExpenseAmount(@Param("userId") UUID userId,
+                                 @Param("currency") Currency currency,
+                                 @Param("startDate") LocalDate startDate,
+                                 @Param("endDate") LocalDate endDate,
+                                 @Param("categoryId") UUID categoryId);
 }
