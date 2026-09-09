@@ -48,4 +48,14 @@ public class RecurringTransactionController {
     public void delete(@PathVariable UUID id) {
         recurringTransactionService.delete(id);
     }
+
+    @PostMapping("/{id}/pause")
+    public ApiResponse<RecurringTransactionResponse> pause(@PathVariable UUID id) {
+        return ApiResponse.of(recurringTransactionService.pause(id));
+    }
+
+    @PostMapping("/{id}/resume")
+    public ApiResponse<RecurringTransactionResponse> resume(@PathVariable UUID id) {
+        return ApiResponse.of(recurringTransactionService.resume(id));
+    }
 }

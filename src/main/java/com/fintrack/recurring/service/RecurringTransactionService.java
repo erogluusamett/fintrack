@@ -74,6 +74,21 @@ public class RecurringTransactionService {
         recurringTransactionRepository.delete(findOwned(id));
     }
 
+    /** Duraklatılan bir şablonu RecurringTransactionScheduler bir daha işlemez, ama kayıt/geçmişi korunur. */
+    @Transactional
+    public RecurringTransactionResponse pause(UUID id) {
+        RecurringTransaction recurring = findOwned(id);
+        recurring.setActive(false);
+        return RecurringTransactionResponse.from(recurring);
+    }
+
+    @Transactional
+    public RecurringTransactionResponse resume(UUID id) {
+        RecurringTransaction recurring = findOwned(id);
+        recurring.setActive(true);
+        return RecurringTransactionResponse.from(recurring);
+    }
+
     private RecurringTransaction findOwned(UUID id) {
         RecurringTransaction recurring = recurringTransactionRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("RecurringTransaction", id));
