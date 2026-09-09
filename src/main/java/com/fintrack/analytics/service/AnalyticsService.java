@@ -319,10 +319,20 @@ public class AnalyticsService {
         return part.divide(whole, 4, RoundingMode.HALF_UP).multiply(HUNDRED).setScale(2, RoundingMode.HALF_UP);
     }
 
-    /** {@code previous} sıfırsa: değişim ancak {@code current} da sıfırsa 0, aksi halde tam artış (%100) kabul edilir. */
+    /**
+     * {@code previous} sıfırsa: değişim {@code current} da sıfırsa 0, aksi
+     * halde tam değişim (%100) kabul edilir — yönü (artış mı azalış mı)
+     * {@code current}'ın işaretiyle belirlenir. Örn. tasarruf 0'dan
+     * -245'e düşerse bu -%100 olmalı, +%100 değil (aksi halde "tasarrufun
+     * %100 arttı" gibi ters bir mesaj üretilirdi — bkz. Dashboard testinde
+     * bulunan gerçek bug).
+     */
     BigDecimal percentChange(BigDecimal previous, BigDecimal current) {
         if (previous.compareTo(BigDecimal.ZERO) == 0) {
-            return current.compareTo(BigDecimal.ZERO) == 0 ? BigDecimal.ZERO : HUNDRED;
+            if (current.compareTo(BigDecimal.ZERO) == 0) {
+                return BigDecimal.ZERO;
+            }
+            return current.signum() > 0 ? HUNDRED : HUNDRED.negate();
         }
         return current.subtract(previous).divide(previous.abs(), 4, RoundingMode.HALF_UP).multiply(HUNDRED).setScale(2, RoundingMode.HALF_UP);
     }

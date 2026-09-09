@@ -4,6 +4,7 @@ import com.fintrack.transaction.entity.Transaction;
 import com.fintrack.transaction.entity.TransactionType;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -38,5 +39,20 @@ public final class TransactionSpecifications {
 
     public static Specification<Transaction> dateTo(LocalDate to) {
         return (root, query, cb) -> to == null ? null : cb.lessThanOrEqualTo(root.get("transactionDate"), to);
+    }
+
+    public static Specification<Transaction> amountFrom(BigDecimal min) {
+        return (root, query, cb) -> min == null ? null : cb.greaterThanOrEqualTo(root.get("amount"), min);
+    }
+
+    public static Specification<Transaction> amountTo(BigDecimal max) {
+        return (root, query, cb) -> max == null ? null : cb.lessThanOrEqualTo(root.get("amount"), max);
+    }
+
+    /** Açıklama içinde büyük/küçük harf duyarsız arama — frontend'in "Search transactions..." alanı için. */
+    public static Specification<Transaction> descriptionContains(String search) {
+        return (root, query, cb) -> (search == null || search.isBlank())
+                ? null
+                : cb.like(cb.lower(root.get("description")), "%" + search.toLowerCase() + "%");
     }
 }

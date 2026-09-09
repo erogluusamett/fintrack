@@ -8,10 +8,10 @@ import com.fintrack.common.exception.ForbiddenException;
 import com.fintrack.common.exception.ResourceNotFoundException;
 import com.fintrack.security.CurrentUserProvider;
 import com.fintrack.transaction.dto.CreateTransactionRequest;
+import com.fintrack.transaction.dto.TransactionFilter;
 import com.fintrack.transaction.dto.TransactionResponse;
 import com.fintrack.transaction.dto.UpdateTransactionRequest;
 import com.fintrack.transaction.entity.Transaction;
-import com.fintrack.transaction.entity.TransactionType;
 import com.fintrack.transaction.event.TransactionCreatedEvent;
 import com.fintrack.transaction.repository.TransactionRepository;
 import com.fintrack.transaction.repository.TransactionSpecifications;
@@ -24,7 +24,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 @Service
@@ -79,14 +78,17 @@ public class TransactionService {
     }
 
     @Transactional(readOnly = true)
-    public Page<TransactionResponse> list(TransactionType type, UUID categoryId, LocalDate from, LocalDate to, Pageable pageable) {
+    public Page<TransactionResponse> list(TransactionFilter filter, Pageable pageable) {
         UUID userId = CurrentUserProvider.getUserId();
         Specification<Transaction> spec = Specification
                 .where(TransactionSpecifications.belongsToUser(userId))
-                .and(TransactionSpecifications.hasType(type))
-                .and(TransactionSpecifications.hasCategory(categoryId))
-                .and(TransactionSpecifications.dateFrom(from))
-                .and(TransactionSpecifications.dateTo(to));
+                .and(TransactionSpecifications.hasType(filter.type()))
+                .and(TransactionSpecifications.hasCategory(filter.categoryId()))
+                .and(TransactionSpecifications.dateFrom(filter.from()))
+                .and(TransactionSpecifications.dateTo(filter.to()))
+                .and(TransactionSpecifications.amountFrom(filter.minAmount()))
+                .and(TransactionSpecifications.amountTo(filter.maxAmount()))
+                .and(TransactionSpecifications.descriptionContains(filter.search()));
 
         return transactionRepository.findAll(spec, pageable).map(TransactionResponse::from);
     }

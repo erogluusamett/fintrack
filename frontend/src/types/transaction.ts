@@ -27,6 +27,9 @@ export interface TransactionFilters {
   categoryId?: string
   from?: string
   to?: string
+  minAmount?: number
+  maxAmount?: number
+  search?: string
   page?: number
   size?: number
   sort?: string

@@ -59,10 +59,23 @@ class AnalyticsServiceTest {
     }
 
     @Test
-    void percentChange_returnsHundred_whenPreviousIsZeroButCurrentIsNot() {
+    void percentChange_returnsHundred_whenPreviousIsZeroAndCurrentIsPositive() {
         BigDecimal result = analyticsService.percentChange(BigDecimal.ZERO, new BigDecimal("500"));
 
         assertThat(result).isEqualByComparingTo("100");
+    }
+
+    /**
+     * Regresyon testi: savings 0'dan negatife düştüğünde (gelir yokken
+     * gider oluştuğunda) dashboard'da "+%100" gibi yanıltıcı bir "arttı"
+     * sinyali üretilmemeli — bu gerçek bir manuel test sırasında bulunan
+     * bug'dı (bkz. git geçmişi).
+     */
+    @Test
+    void percentChange_returnsNegativeHundred_whenPreviousIsZeroAndCurrentIsNegative() {
+        BigDecimal result = analyticsService.percentChange(BigDecimal.ZERO, new BigDecimal("-245.50"));
+
+        assertThat(result).isEqualByComparingTo("-100");
     }
 
     @Test

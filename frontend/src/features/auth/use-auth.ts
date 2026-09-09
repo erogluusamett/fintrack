@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query"
 import { useEffect } from "react"
 import { authApi } from "@/api/auth.api"
+import { refreshAccessTokenOnce } from "@/api/axios"
 import { userApi } from "@/api/user.api"
 import { clearRefreshToken, getRefreshToken, setRefreshToken } from "@/lib/refresh-token-storage"
 import { useAuthStore } from "@/store/auth-store"
@@ -53,6 +54,14 @@ export function useLogout() {
  * demektir) ama localStorage'da bir refresh token olabilir — varsa sessizce
  * yeni bir access token alıp oturumu geri kurar. App.tsx bunu bir kez,
  * root seviyede çalıştırır.
+ * <p>
+ * Kasıtlı olarak {@code authApi.refresh()}'i DOĞRUDAN çağırmaz —
+ * {@code refreshAccessTokenOnce()} (axios.ts) paylaşılan promise'ini
+ * kullanır. React StrictMode development'ta bu effect'i iki kez
+ * çalıştırıyor; ikisi de aynı (henüz rotate edilmemiş) refresh token'ı
+ * doğrudan çağırsaydı ikincisi backend'de zaten geçersiz kılınmış eski
+ * token'la başarısız olur ve BİRİNCİ isteğin az önce kurduğu geçerli
+ * oturumu yanlışlıkla temizlerdi — gerçek bir manuel testte yakalanan bug.
  */
 export function useBootstrapAuth() {
   useEffect(() => {
@@ -62,9 +71,8 @@ export function useBootstrapAuth() {
       return
     }
 
-    authApi
-      .refresh(refreshToken)
-      .then(({ accessToken, refreshToken: rotated }) => establishSession(accessToken, rotated))
+    refreshAccessTokenOnce()
+      .then((accessToken) => userApi.getMe().then((user) => useAuthStore.getState().setSession(user, accessToken)))
       .catch(() => {
         useAuthStore.getState().clearSession()
         clearRefreshToken()

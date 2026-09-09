@@ -18,11 +18,24 @@ api.interceptors.request.use((config) => {
 
 /**
  * Aynı anda birden fazla istek 401 alırsa (örn. dashboard birkaç query'yi
- * paralel atarken token tam o an süresi dolmuşsa) her biri ayrı ayrı
- * /auth/refresh çağırmasın diye tek bir paylaşılan promise. İlk 401 refresh'i
- * başlatır, diğerleri aynı promise'i bekler.
+ * paralel atarken token tam o an süresi dolmuşsa), YA DA React StrictMode
+ * bir effect'i (bkz. useBootstrapAuth) development'ta iki kez çalıştırırsa,
+ * her biri ayrı ayrı /auth/refresh çağırıp AYNI refresh token'ı kullanmaya
+ * çalışmasın diye tek bir paylaşılan promise. Backend refresh token'ı
+ * rotate ettiği için ikinci eşzamanlı çağrı zaten geçersiz kalmış eski
+ * token'ı kullanır ve başarısız olur — bu da geçerli bir oturumun yanlışlıkla
+ * temizlenmesine yol açardı (gerçek bir testte yakalanan bug, bkz. git
+ * geçmişi). İlk çağıran refresh'i başlatır, geri kalan HERKES (401 handler'ı
+ * dahil) aynı promise'i bekler.
  */
 let refreshPromise: Promise<string> | null = null
+
+export function refreshAccessTokenOnce(): Promise<string> {
+  refreshPromise ??= refreshAccessToken().finally(() => {
+    refreshPromise = null
+  })
+  return refreshPromise
+}
 
 async function refreshAccessToken(): Promise<string> {
   const refreshToken = getRefreshToken()
@@ -66,10 +79,7 @@ api.interceptors.response.use(
     originalRequest._retried = true
 
     try {
-      refreshPromise ??= refreshAccessToken().finally(() => {
-        refreshPromise = null
-      })
-      const newAccessToken = await refreshPromise
+      const newAccessToken = await refreshAccessTokenOnce()
 
       originalRequest.headers.set("Authorization", `Bearer ${newAccessToken}`)
       return api(originalRequest)

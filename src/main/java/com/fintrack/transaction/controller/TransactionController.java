@@ -3,6 +3,7 @@ package com.fintrack.transaction.controller;
 import com.fintrack.common.dto.ApiResponse;
 import com.fintrack.common.dto.PageResponse;
 import com.fintrack.transaction.dto.CreateTransactionRequest;
+import com.fintrack.transaction.dto.TransactionFilter;
 import com.fintrack.transaction.dto.TransactionResponse;
 import com.fintrack.transaction.dto.UpdateTransactionRequest;
 import com.fintrack.transaction.entity.TransactionType;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -41,9 +43,13 @@ public class TransactionController {
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) BigDecimal minAmount,
+            @RequestParam(required = false) BigDecimal maxAmount,
+            @RequestParam(required = false) String search,
             @PageableDefault(size = 20, sort = "transactionDate", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        return ApiResponse.of(PageResponse.from(transactionService.list(type, categoryId, from, to, pageable)));
+        var filter = new TransactionFilter(type, categoryId, from, to, minAmount, maxAmount, search);
+        return ApiResponse.of(PageResponse.from(transactionService.list(filter, pageable)));
     }
 
     @PostMapping

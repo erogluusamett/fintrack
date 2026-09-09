@@ -7,6 +7,7 @@ import { RegisterPage } from "@/features/auth/RegisterPage"
 import { ResetPasswordPage } from "@/features/auth/ResetPasswordPage"
 import { useBootstrapAuth } from "@/features/auth/use-auth"
 import { DashboardPage } from "@/features/dashboard/DashboardPage"
+import { TransactionsPage } from "@/features/transactions/TransactionsPage"
 import { ProtectedRoute } from "@/routes/ProtectedRoute"
 
 export function App() {
@@ -24,6 +25,7 @@ export function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/transactions" element={<TransactionsPage />} />
         </Route>
       </Route>
 
