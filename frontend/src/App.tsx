@@ -9,7 +9,9 @@ import { ResetPasswordPage } from "@/features/auth/ResetPasswordPage"
 import { useBootstrapAuth } from "@/features/auth/use-auth"
 import { BudgetsPage } from "@/features/budgets/BudgetsPage"
 import { DashboardPage } from "@/features/dashboard/DashboardPage"
+import { NotificationsPage } from "@/features/notifications/NotificationsPage"
 import { RecurringPaymentsPage } from "@/features/recurring/RecurringPaymentsPage"
+import { ReportsPage } from "@/features/reports/ReportsPage"
 import { SubscriptionsPage } from "@/features/subscriptions/SubscriptionsPage"
 import { TransactionsPage } from "@/features/transactions/TransactionsPage"
 import { ProtectedRoute } from "@/routes/ProtectedRoute"
@@ -34,6 +36,8 @@ export function App() {
           <Route path="/subscriptions" element={<SubscriptionsPage />} />
           <Route path="/recurring" element={<RecurringPaymentsPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
         </Route>
       </Route>
 
