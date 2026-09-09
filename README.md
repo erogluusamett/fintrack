@@ -1,13 +1,14 @@
 # FinTrack
 
-A production-oriented personal finance and subscription management backend — built to demonstrate real backend engineering practices, not just CRUD.
+A production-oriented full-stack personal finance and subscription management system — built to demonstrate real engineering practices, not just CRUD, on both ends of the stack.
 
-FinTrack lets a user track income/expense transactions, set category or overall budgets with automatic warning/exceeded alerts, manage recurring payments and subscriptions, and get algorithmic insights into their spending — all behind a JWT-secured, rate-limited, audited REST API.
+FinTrack lets a user track income/expense transactions, set category or overall budgets with automatic warning/exceeded alerts, manage recurring payments and subscriptions, and get algorithmic insights into their spending — all behind a JWT-secured, rate-limited, audited REST API, with a matching React/TypeScript web client in **[`frontend/`](frontend/README.md)**.
 
 ## Table of Contents
 
 - [Features](#features)
 - [Tech Stack](#tech-stack)
+- [Frontend](#frontend)
 - [Architecture](#architecture)
 - [Data Model](#data-model)
 - [API](#api)
@@ -43,6 +44,10 @@ FinTrack lets a user track income/expense transactions, set category or overall 
 | Testing | JUnit 5, Mockito, AssertJ, Testcontainers |
 | Containerization | Docker, Docker Compose |
 | CI | GitHub Actions |
+
+## Frontend
+
+A full React 19 + TypeScript web client lives in **[`frontend/`](frontend/README.md)** — Vite, React Router, TanStack Query, Zustand, React Hook Form + Zod, Tailwind CSS v4 with shadcn/ui, and Recharts. It covers every module above: auth (with silent refresh-token session restore), transactions with filtering, budgets with live usage bars, subscriptions and recurring payments, an analytics dashboard with charts and generated insights, notifications, exportable reports, and account settings. See the frontend README for its own architecture notes and setup instructions.
 
 ## Architecture
 
@@ -164,6 +169,18 @@ mvn spring-boot:run
 ```
 
 Requires Java 21 and Maven. The app defaults to `localhost:5432`/`localhost:6379` when run outside Docker — override with the environment variables below if your Postgres/Redis live elsewhere.
+
+### Run the frontend
+
+With the backend running (either method above), in a separate terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Opens at `http://localhost:5173`. See **[frontend/README.md](frontend/README.md)** for details — it talks to the backend at `http://localhost:8080/api/v1` by default, which requires `CORS_ALLOWED_ORIGINS` on the backend to include `http://localhost:5173` (already the default).
 
 ## Environment Variables
 

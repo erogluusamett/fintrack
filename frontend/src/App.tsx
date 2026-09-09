@@ -7,11 +7,13 @@ import { LoginPage } from "@/features/auth/LoginPage"
 import { RegisterPage } from "@/features/auth/RegisterPage"
 import { ResetPasswordPage } from "@/features/auth/ResetPasswordPage"
 import { useBootstrapAuth } from "@/features/auth/use-auth"
+import { VerifyEmailPage } from "@/features/auth/VerifyEmailPage"
 import { BudgetsPage } from "@/features/budgets/BudgetsPage"
 import { DashboardPage } from "@/features/dashboard/DashboardPage"
 import { NotificationsPage } from "@/features/notifications/NotificationsPage"
 import { RecurringPaymentsPage } from "@/features/recurring/RecurringPaymentsPage"
 import { ReportsPage } from "@/features/reports/ReportsPage"
+import { SettingsPage } from "@/features/settings/SettingsPage"
 import { SubscriptionsPage } from "@/features/subscriptions/SubscriptionsPage"
 import { TransactionsPage } from "@/features/transactions/TransactionsPage"
 import { ProtectedRoute } from "@/routes/ProtectedRoute"
@@ -26,6 +28,7 @@ export function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
       </Route>
 
       <Route element={<ProtectedRoute />}>
@@ -38,6 +41,7 @@ export function App() {
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>
 

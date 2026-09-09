@@ -34,4 +34,4 @@ Requires the backend running at the URL in `VITE_API_BASE_URL` (defaults to `htt
 
 ## Status
 
-Built in phases alongside the backend's own phased build. Done so far: project setup, full auth flow (register/login/refresh rotation/forgot-reset password), the core app shell (responsive sidebar, dark mode), and a live Dashboard. Transactions, Budgets, Subscriptions, Recurring, Analytics, Notifications, Reports, and Settings are still ahead.
+Built in phases alongside the backend's own phased build, and complete: project setup, full auth flow (register/login/refresh rotation/forgot-reset password), the core app shell (responsive sidebar, dark mode), Dashboard, Transactions, Budgets, Subscriptions, Recurring Payments, Analytics (charts + smart insights), Notifications, Reports (date-range summaries + CSV export), and Settings (profile + password).
