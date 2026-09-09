@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { AuthLayout } from "@/components/layout/AuthLayout"
+import { AnalyticsPage } from "@/features/analytics/AnalyticsPage"
 import { ForgotPasswordPage } from "@/features/auth/ForgotPasswordPage"
 import { LoginPage } from "@/features/auth/LoginPage"
 import { RegisterPage } from "@/features/auth/RegisterPage"
@@ -32,6 +33,7 @@ export function App() {
           <Route path="/budgets" element={<BudgetsPage />} />
           <Route path="/subscriptions" element={<SubscriptionsPage />} />
           <Route path="/recurring" element={<RecurringPaymentsPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
         </Route>
       </Route>
 
